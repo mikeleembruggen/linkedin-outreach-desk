@@ -11,6 +11,7 @@ Read `${CLAUDE_PLUGIN_ROOT}/references/safety.md`, `logging.md` and `~/.claude/l
 `prospecting.offer` (what the owner sells, one line), `prospecting.types[]` (each: `name`, `description`, `titleKeywords`, `locationRule` strict|prefer|any, `locations`), `prospecting.excludeKeywords`, `prospecting.perCompanyCap` (default 2), `prospecting.requestsPerRun` ({min,max}, default 5 to 8), `prospecting.maxPerDay` (default 10), `prospecting.note` (default empty = blank request).
 
 ## Step 0 - Day cap
+If ArtifactData is not available in this environment, skip this step and the state write in Step 4, cap the run at `requestsPerRun.max`, and say so in the report.
 ArtifactData `get` `state/connect` on the relay artifact (`artifacts.relay`): `{date, sentToday, companies:{}}`. If `date` is not today in `owner.timezone`, reset. If `sentToday >= maxPerDay`, log and finish. This run may send at most `min(requestsPerRun.max, maxPerDay - sentToday)`.
 
 ## Step 1 - Browse for candidates
