@@ -1,0 +1,4 @@
+.DS_Store
+*.local.json
+config.json
+.env

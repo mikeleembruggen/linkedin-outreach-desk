@@ -1,0 +1,51 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Outreach Relay</title>
+<style>
+  :root { --bg:#0b0f19; --panel:#151b2b; --border:#232a3d; --text:#e7ebf3; --muted:#8b93a7; --accent:#4f9cf9; --green:#22c55e; --amber:#f59e0b; color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin:0; min-height:100vh; background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; display:flex; align-items:center; justify-content:center; padding:24px 16px; }
+  .card { width:100%; max-width:380px; background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:28px 24px; text-align:center; }
+  .name { font-size:17px; font-weight:700; margin:0 0 6px 0; }
+  .status { font-size:13.5px; color:var(--muted); margin:0 0 20px 0; line-height:1.5; }
+  .go { display:inline-block; padding:12px 20px; background:var(--accent); color:#08111f; text-decoration:none; font-weight:700; font-size:14px; border-radius:10px; }
+  [hidden] { display:none !important; }
+</style></head><body>
+<div class="card">
+  <div id="loading"><p class="status">Opening profile&hellip;</p></div>
+  <div id="ready" hidden>
+    <p class="name" id="readyName"></p>
+    <p class="status">Taking you to LinkedIn now.</p>
+    <a class="go" id="readyLink" href="#" target="_blank" rel="noopener">Open profile</a>
+  </div>
+  <div id="missing" hidden>
+    <p class="name">Link not recognised</p>
+    <p class="status">This relay link doesn&rsquo;t match a LinkedIn profile.</p>
+  </div>
+</div>
+<script>
+// Relay link format: <this artifact url>#<linkedin-slug>
+// Logs the click to db collection "clicks" (doc id = slug), which permanently excludes
+// that person from future voice-note picks, then forwards to their LinkedIn profile.
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var slug = (window.location.hash || '').replace(/^#/, '').trim();
+  if (!slug || !/^[A-Za-z0-9_\-.~%]{2,120}$/.test(slug)) { $('loading').hidden = true; $('missing').hidden = false; return; }
+  var url = 'https://www.linkedin.com/in/' + slug + '/';
+  $('loading').hidden = true;
+  $('readyName').textContent = decodeURIComponent(slug);
+  $('readyLink').href = url;
+  $('ready').hidden = false;
+  setTimeout(function () { try { window.location.href = url; } catch (e) {} }, 500);
+  if (window.claude && typeof window.claude.use === 'function') {
+    window.claude.use('db').then(function (db) {
+      if (!db) return;
+      var ref = db.doc('clicks/' + slug);
+      return ref.get().then(function (existing) {
+        var now = new Date().toISOString();
+        var prev = existing && existing.exists ? existing.data() : null;
+        return ref.set({ url: url, firstClickedAt: prev && prev.firstClickedAt ? prev.firstClickedAt : now, lastClickedAt: now, count: (prev && prev.count ? prev.count : 0) + 1 });
+      });
+    }).catch(function () {});
+  }
+})();
+</script></body></html>

@@ -1,0 +1,20 @@
+{
+  "name": "linkedin-outreach-desk",
+  "version": "0.2.0",
+  "description": "A LinkedIn outreach system for your own account: find and connect with relevant people, get a daily list of who to send a voice note to, and have DM and comment replies drafted for your approval, with optional automatic meeting booking.",
+  "author": {
+    "name": "Michael Leembruggen"
+  },
+  "keywords": [
+    "linkedin",
+    "outreach",
+    "connections",
+    "dm",
+    "comments",
+    "voice notes",
+    "booking",
+    "claude in chrome",
+    "routines"
+  ],
+  "license": "Proprietary"
+}

@@ -1,0 +1,346 @@
+<title>DM Desk</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  /* Layout: one review column; each card is a conversation excerpt (their messages left, yours right) with your drafted reply and actions underneath. Same palette as Comment Desk and Talent Wire. */
+  :root{
+    --bg:#EDEFEE; --surface:#FFFFFF; --surface-2:#F3F5F4;
+    --ink:#12201D; --ink-muted:#57655F; --ink-faint:#8A968F; --line:#DBDFDC;
+    --accent:#0E7C66; --accent-ink:#FFFFFF; --accent-bg:#E4F3EE;
+    --warm:#C97A3D; --warm-bg:#FBEEE1; --bad:#B4412F; --bad-bg:#F8E6E2;
+    --shadow:0 1px 2px rgba(18,32,29,.06),0 8px 24px rgba(18,32,29,.06);
+    --serif:'Fraunces',Georgia,serif; --sans:'IBM Plex Sans',system-ui,-apple-system,sans-serif; --mono:'IBM Plex Mono',ui-monospace,monospace;
+  }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+    --bg:#0D1613; --surface:#16201C; --surface-2:#1B2622;
+    --ink:#E9F0EC; --ink-muted:#9DAEA6; --ink-faint:#657168; --line:#26332C;
+    --accent:#3ED6A8; --accent-ink:#07211A; --accent-bg:#153027;
+    --warm:#E7A06A; --warm-bg:#2C2013; --bad:#F08A78; --bad-bg:#3A1C17;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 28px rgba(0,0,0,.35); color-scheme:dark }}
+  :root[data-theme="dark"]{
+    --bg:#0D1613; --surface:#16201C; --surface-2:#1B2622;
+    --ink:#E9F0EC; --ink-muted:#9DAEA6; --ink-faint:#657168; --line:#26332C;
+    --accent:#3ED6A8; --accent-ink:#07211A; --accent-bg:#153027;
+    --warm:#E7A06A; --warm-bg:#2C2013; --bad:#F08A78; --bad-bg:#3A1C17;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 28px rgba(0,0,0,.35); color-scheme:dark }
+
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.5}
+  a{color:var(--accent)}
+  .wrap{max-width:780px;margin:0 auto;padding:28px 16px 80px}
+
+  .masthead{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;flex-wrap:wrap;padding-bottom:18px;margin-bottom:20px;border-bottom:2px solid var(--ink)}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-muted);margin:0 0 6px}
+  h1{font-family:var(--serif);font-weight:500;font-size:clamp(30px,4.5vw,40px);line-height:1.05;margin:0;text-wrap:balance}
+  .meta{font-family:var(--mono);font-size:12px;color:var(--ink-muted);display:flex;flex-direction:column;gap:3px;text-align:right}
+  @media (max-width:520px){.meta{text-align:left}}
+
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}
+  .tab{font-family:var(--sans);font-size:13px;font-weight:500;border:1px solid var(--line);background:var(--surface);color:var(--ink-muted);border-radius:99px;padding:6px 13px;cursor:pointer;display:inline-flex;gap:7px;align-items:center}
+  .tab b{font-family:var(--mono);font-weight:500;font-size:12px;font-variant-numeric:tabular-nums}
+  .tab[aria-selected="true"]{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+  .tab:focus-visible,button:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  .bulk{display:flex;justify-content:flex-end;margin:-6px 0 14px}
+  .list{display:flex;flex-direction:column;gap:14px}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+  .who{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+  .who .name{font-weight:600}
+  .who .name a{color:var(--ink);text-decoration:none}
+  .who .name a:hover{text-decoration:underline}
+  .who .headline{font-size:12.5px;color:var(--ink-muted);flex:1;min-width:0}
+  .who .when{font-family:var(--mono);font-size:11px;color:var(--ink-faint)}
+  .tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-muted);border:1px solid var(--line);border-radius:6px;padding:2px 7px}
+  .links{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;font-weight:500}
+  .links a{text-decoration:none}
+  .links a:hover{text-decoration:underline}
+
+  .vn{display:flex;flex-direction:column;gap:6px;border-radius:10px;padding:10px 12px;font-size:13.5px}
+  .vn.todo{background:var(--warm-bg);color:var(--ink)}
+  .vn.todo .vn-head{color:var(--warm);font-weight:600}
+  .vn.done{background:transparent;padding:0;font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);flex-direction:row;align-items:center;gap:10px;flex-wrap:wrap}
+  .vn .vn-idea{color:var(--ink-muted)}
+  .vn .vn-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+
+  .mtg{display:flex;flex-direction:column;gap:7px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:13.5px}
+  .mtg-head{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint)}
+  .slots{display:flex;gap:6px;flex-wrap:wrap}
+  .slot{font-family:var(--mono);font-size:12px;background:var(--surface-2);border-radius:6px;padding:3px 8px;font-variant-numeric:tabular-nums}
+  .mtg.book{border-color:var(--accent);background:var(--accent-bg)}
+  .mtg.book.off{border-color:var(--line);background:transparent}
+  .mtg.book .what{font-weight:600}
+  .mtg.booked{border-color:transparent;padding:0;font-family:var(--mono);font-size:11.5px;color:var(--accent)}
+  .linkbtn{background:none;border:0;padding:0;font:inherit;font-size:12px;color:var(--ink-muted);text-decoration:underline;cursor:pointer}
+  a.btn{display:inline-block;font-family:var(--sans);font-size:13px;font-weight:500;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:7px 13px;text-decoration:none}
+
+  .thread{display:flex;flex-direction:column;gap:6px}
+  .msg{max-width:88%;padding:8px 11px;border-radius:12px;font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere}
+  .msg .from{display:block;font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);margin-bottom:2px}
+  .msg.them{align-self:flex-start;background:var(--surface-2);border-bottom-left-radius:4px}
+  .msg.me{align-self:flex-end;background:var(--accent-bg);border-bottom-right-radius:4px}
+  .msg.latest{box-shadow:inset 0 0 0 1px var(--ink-faint)}
+
+  .reply{background:var(--surface-2);border-radius:10px;padding:12px 12px 10px;display:flex;flex-direction:column;gap:6px;border:1px dashed var(--line)}
+  .reply-label{font-family:var(--mono);font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint);display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+  .reply-text{white-space:pre-wrap;font-size:14.5px;overflow-wrap:anywhere}
+  .note{font-size:12.5px;color:var(--warm);font-style:italic}
+  textarea{width:100%;min-height:110px;resize:vertical;font:inherit;font-size:14.5px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 10px}
+  .chars{font-family:var(--mono);font-size:11px;color:var(--ink-faint);text-align:right}
+
+  .actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--line);padding-top:11px}
+  button.btn{font-family:var(--sans);font-size:13px;font-weight:500;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:7px 13px;cursor:pointer}
+  button.btn:hover{border-color:var(--ink-faint)}
+  button.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+  button.btn.quiet{color:var(--ink-muted)}
+  button.btn:disabled{opacity:.5;cursor:default}
+  .spacer{flex:1}
+
+  .pill{font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;padding:3px 9px;border-radius:6px;white-space:nowrap}
+  .pill.pending{background:var(--surface);color:var(--ink-muted);border:1px solid var(--line)}
+  .pill.approved{background:var(--accent-bg);color:var(--accent)}
+  .pill.sent{background:var(--ink);color:var(--surface)}
+  .pill.skipped,.pill.superseded{background:var(--surface);color:var(--ink-faint);border:1px solid var(--line)}
+  .pill.failed{background:var(--bad-bg);color:var(--bad)}
+  .pill.edited{background:var(--warm-bg);color:var(--warm)}
+  .err{font-size:12.5px;color:var(--bad)}
+
+  .empty{background:var(--surface);border:1px dashed var(--line);border-radius:14px;padding:32px 22px;text-align:center;color:var(--ink-muted)}
+  .empty strong{display:block;font-family:var(--serif);font-weight:500;font-size:18px;color:var(--ink);margin-bottom:6px}
+  .status{font-family:var(--mono);font-size:12px;color:var(--ink-faint);text-align:center;margin-top:36px}
+  details.how{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 16px;margin-bottom:20px}
+  details.how summary{cursor:pointer;font-weight:600;font-size:14px}
+  details.how p{font-size:14px;color:var(--ink-muted);margin:10px 0 0;max-width:64ch}
+  @media (prefers-reduced-motion: reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <div>
+      <p class="eyebrow">LinkedIn · direct messages</p>
+      <h1>DM Desk</h1>
+    </div>
+    <div class="meta">
+      <span id="lastCheck">Inbox checked daily, about 8 AM</span>
+      <span id="lastSend">Approved replies sent daily, about 1 PM</span>
+    </div>
+  </header>
+
+  <details class="how">
+    <summary>How this works</summary>
+    <p>Each morning a routine reads your LinkedIn inbox for new and unread messages you haven't answered, and drafts a reply for each conversation. Conversations it opens are marked unread again so your inbox still shows them.</p>
+    <p>Approve a reply as written, or press Edit, change the words and press Save &amp; approve. Each afternoon a second routine sends every approved reply in its conversation, exactly as shown here, then marks it Sent. If you've already replied yourself, or the person has written again since the draft, it holds the reply back and tells you why.</p>
+    <p>Each card also says whether you've sent that person a voice note, checked against your connections tracker and the conversation itself. If you haven't, it suggests one with a talking point. Voice notes can only be recorded in the LinkedIn mobile app, so open their profile there, send it, then press I sent a voice note.</p>
+    <p>When a conversation is a good fit for a chat, the draft offers two open 30-minute times from your Cal.com Meeting calendar plus your booking link: a coffee or a Google Meet for people near Brisbane, a Google Meet for everyone else. When someone picks a time and gives their email, approving the card also books the meeting in your calendar before the reply goes out. Press Don't book to send the reply without booking.</p>
+  </details>
+
+  <nav class="tabs" role="tablist" id="tabs"></nav>
+  <div class="bulk" id="bulk"></div>
+  <div class="list" id="list">
+    <div class="empty"><strong>Loading messages…</strong>New LinkedIn messages appear here after each morning check.</div>
+  </div>
+  <p class="status" id="status"></p>
+</div>
+
+<script>
+(function(){
+  const TABS = [
+    ['pending','Needs review'],['approved','Approved'],['sent','Sent'],['skipped','Skipped'],['failed','Held back'],['voice','Voice notes to send']
+  ];
+  const NO_VN = ['sponsored','sales pitch'];
+  const needsVN = r => r.voiceNote === 'not_sent' && !NO_VN.includes(r.category) && !['skipped','superseded'].includes(r.status);
+  const tabOf = s => (s === 'superseded' ? 'skipped' : (s || 'pending'));
+  const listEl = document.getElementById('list');
+  const tabsEl = document.getElementById('tabs');
+  const bulkEl = document.getElementById('bulk');
+  const statusEl = document.getElementById('status');
+  let db = null, rows = [], editing = new Set(), drafts = {};
+  let tab = 'pending';
+  try{ tab = localStorage.getItem('dm-tab') || 'pending'; }catch(e){}
+
+  const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const safeUrl = u => /^https:\/\/([a-z0-9-]+\.)*linkedin\.com\//i.test(u || '') ? u : '';
+  function ago(iso){
+    if(!iso) return '';
+    const d = new Date(iso); if(isNaN(d)) return esc(iso);
+    return d.toLocaleString(undefined,{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'});
+  }
+
+  function renderTabs(){
+    const counts = {}; rows.forEach(r => { const k = tabOf(r.status); counts[k] = (counts[k]||0)+1; if(needsVN(r)) counts.voice = (counts.voice||0)+1; });
+    tabsEl.innerHTML = TABS.filter(([k]) => (k !== 'failed' && k !== 'voice') || counts[k]).map(([k,l]) =>
+      `<button class="tab" role="tab" id="tab-${k}" aria-selected="${tab===k}" data-tab="${k}">${l} <b>${counts[k]||0}</b></button>`).join('');
+  }
+
+  function thread(r){
+    const msgs = Array.isArray(r.messages) && r.messages.length ? r.messages : [{from:'them', name:r.senderName, text:r.lastInboundText, at:r.lastInboundAt}];
+    const lastThem = msgs.map(m => m.from).lastIndexOf('them');
+    return `<div class="thread">${msgs.map((m,i) => {
+      const me = m.from === 'me';
+      return `<div class="msg ${me?'me':'them'}${i===lastThem?' latest':''}"><span class="from">${esc(me ? 'You' : (m.name || r.senderName || 'Them'))}${m.at ? ' · ' + esc(m.at) : ''}</span>${esc(m.text||'')}</div>`;
+    }).join('')}</div>`;
+  }
+
+  function voice(r, prof){
+    if(r.voiceNote === 'sent'){
+      const when = r.voiceNoteDate ? ' · ' + esc(r.voiceNoteDate) : '';
+      return `<div class="vn done"><span>✓ Voice note sent${when}</span>${r.voiceNoteSource === 'dashboard' ? `<button class="linkbtn" data-act="vn-unsent" data-id="${esc(r.id)}">Undo</button>` : ''}</div>`;
+    }
+    if(!needsVN(r)) return '';
+    return `<div class="vn todo">
+      <span class="vn-head">No voice note sent yet. Worth sending one?</span>
+      ${r.voiceNoteIdea ? `<span class="vn-idea">Talking point: ${esc(r.voiceNoteIdea)}</span>` : ''}
+      <div class="vn-row">
+        ${prof ? `<a class="btn" href="${esc(prof)}" target="_blank" rel="noopener">Open profile</a>` : ''}
+        <button class="btn" data-act="vn-sent" data-id="${esc(r.id)}">I sent a voice note</button>
+      </div>
+    </div>`;
+  }
+
+  const where = b => b.location === 'in_person' ? ('Coffee' + (b.venue ? ' at ' + b.venue : ', venue not set')) : 'Google Meet';
+  function meeting(r){
+    const st = r.status || 'pending';
+    const b = r.bookingRequest;
+    if(r.bookingUid){
+      return `<div class="mtg booked">✓ 30-min meeting booked${b && b.label ? ' · ' + esc(b.label) + ' · ' + esc(where(b)) : ''}</div>`;
+    }
+    if(b && b.start){
+      const on = r.bookMeeting !== false;
+      const canToggle = ['pending','approved','failed'].includes(st);
+      return `<div class="mtg book${on?'':' off'}">
+        <span class="mtg-head">${on ? 'Approving also books' : 'Booking turned off'}</span>
+        <span class="what">30-min meeting · ${esc(b.label || b.start)} · ${esc(where(b))}</span>
+        <span>${esc(b.attendeeName || r.senderName || '')}${b.attendeeEmail ? ' · ' + esc(b.attendeeEmail) : ''}</span>
+        ${canToggle ? `<div class="vn-row"><button class="btn quiet" data-act="${on?'book-off':'book-on'}" data-id="${esc(r.id)}">${on ? "Don't book" : 'Book it'}</button></div>` : ''}
+      </div>`;
+    }
+    if(Array.isArray(r.meetingSlots) && r.meetingSlots.length && !['skipped','superseded'].includes(st)){
+      const link = /^https:\/\/([a-z0-9-]+\.)*cal\.com\//i.test(r.bookingLink||'') ? r.bookingLink : '';
+      return `<div class="mtg">
+        <span class="mtg-head">Times offered in this reply · ${r.meetingFormat === 'coffee_or_meet' ? 'coffee or Google Meet' : 'Google Meet'}</span>
+        <div class="slots">${r.meetingSlots.map(x => `<span class="slot">${esc(x.label || x.start)}</span>`).join('')}</div>
+        ${link ? `<a href="${esc(link)}" target="_blank" rel="noopener">${esc(link.replace(/^https:\/\//,''))} ↗</a>` : ''}
+      </div>`;
+    }
+    return '';
+  }
+
+  function card(r){
+    const st = r.status || 'pending';
+    const isEditing = editing.has(r.id);
+    const text = r.replyText || r.suggestedReply || '';
+    const link = safeUrl(r.threadUrl), prof = safeUrl(r.profileUrl) || safeUrl(r.senderUrl);
+    let actions = '';
+    if(isEditing){
+      actions = `<button class="btn primary" data-act="save" data-id="${esc(r.id)}">Save &amp; approve</button>
+                 <button class="btn quiet" data-act="cancel" data-id="${esc(r.id)}">Cancel</button>`;
+    } else if(st === 'pending' || st === 'failed'){
+      actions = `<button class="btn primary" data-act="approve" data-id="${esc(r.id)}" ${text.trim()?'':'disabled'}>${st==='failed'?'Approve again':'Approve'}</button>
+                 <button class="btn" data-act="edit" data-id="${esc(r.id)}">Edit</button>
+                 <span class="spacer"></span>
+                 <button class="btn quiet" data-act="skip" data-id="${esc(r.id)}">Skip</button>`;
+    } else if(st === 'approved'){
+      actions = `<button class="btn" data-act="edit" data-id="${esc(r.id)}">Edit</button>
+                 <span class="spacer"></span>
+                 <button class="btn quiet" data-act="undo" data-id="${esc(r.id)}">Undo approval</button>`;
+    } else if(st === 'skipped'){
+      actions = `<button class="btn" data-act="undo" data-id="${esc(r.id)}">Move back to review</button>`;
+    }
+    const label = st === 'sent' ? `Sent ${ago(r.sentAt)}` : (r.edited ? 'Your edited reply' : 'Suggested reply');
+    const pillText = {pending:'Needs review', failed:'Held back', superseded:'Replaced by newer'}[st] || st;
+    const replyBlock = isEditing
+      ? `<textarea id="ta-${esc(r.id)}" data-id="${esc(r.id)}" aria-label="Reply text">${esc(drafts[r.id] ?? text)}</textarea><div class="chars" id="ch-${esc(r.id)}">${(drafts[r.id] ?? text).length} / 8000</div>`
+      : (text ? `<div class="reply-text">${esc(text)}</div>` : `<div class="reply-text" style="color:var(--ink-faint)">No reply drafted.</div>`);
+    return `<article class="card">
+      <div class="who">
+        <span class="name">${prof ? `<a href="${esc(prof)}" target="_blank" rel="noopener">${esc(r.senderName||'Someone')}</a>` : esc(r.senderName||'Someone')}</span>
+        ${r.category ? `<span class="tag">${esc(r.category)}</span>` : ''}
+        <span class="headline">${esc(r.senderHeadline||'')}</span>
+      </div>
+      <div class="links">
+        ${prof ? `<a href="${esc(prof)}" target="_blank" rel="noopener">View profile ↗</a>` : ''}
+        ${link ? `<a href="${esc(link)}" target="_blank" rel="noopener">Open conversation ↗</a>` : ''}
+      </div>
+      ${voice(r, prof)}
+      ${thread(r)}
+      <div class="reply">
+        <div class="reply-label"><span>${label}</span><span><span class="pill ${esc(st)}">${esc(pillText)}</span>${r.edited && st!=='sent' ? ' <span class="pill edited">Edited</span>' : ''}</span></div>
+        ${replyBlock}
+        ${r.aiNote && st==='pending' ? `<div class="note">${esc(r.aiNote)}</div>` : ''}
+        ${st==='failed' && r.error ? `<div class="err">Not sent: ${esc(r.error)}</div>` : ''}
+      </div>
+      ${meeting(r)}
+      ${actions ? `<div class="actions">${actions}</div>` : ''}
+    </article>`;
+  }
+
+  function render(){
+    renderTabs();
+    const shown = rows.filter(r => tab === 'voice' ? needsVN(r) : tabOf(r.status) === tab)
+      .sort((a,b) => (tab==='sent' ? (b.sentAt||'').localeCompare(a.sentAt||'') : (b.fetchedAt||'').localeCompare(a.fetchedAt||'')));
+    const approvable = tab==='pending' ? shown.filter(r => (r.replyText||r.suggestedReply||'').trim() && !r.aiNote && !editing.has(r.id)) : [];
+    bulkEl.innerHTML = approvable.length > 1 ? `<button class="btn" data-act="approve-all">Approve all ${approvable.length} without a flag</button>` : '';
+    if(!shown.length){
+      const msg = {pending:['Inbox zero','New messages land here after the next morning check.'],approved:['Nothing queued','Approved replies wait here until the afternoon run sends them.'],sent:['No replies sent yet','Sent replies are listed here with the time they went out.'],skipped:['Nothing skipped','Messages you choose not to answer are kept here.'],failed:['Nothing held back',''],voice:['No voice notes to send','Everyone in your inbox has had one, or there is no one to send to.']}[tab];
+      listEl.innerHTML = `<div class="empty"><strong>${msg[0]}</strong>${msg[1]}</div>`;
+      return;
+    }
+    listEl.innerHTML = shown.map(card).join('');
+  }
+
+  async function write(id, patch){
+    if(!db) return;
+    try{ await db.doc('messages/' + id).update(patch); statusEl.textContent=''; }
+    catch(e){ statusEl.textContent = 'Could not save that change. Reload the page and try again.'; }
+  }
+  const now = () => new Date().toISOString();
+  const find = id => rows.find(r => r.id === id);
+
+  document.addEventListener('click', e => {
+    const t = e.target.closest('[data-tab]');
+    if(t){ tab = t.dataset.tab; try{localStorage.setItem('dm-tab',tab)}catch(_){}; render(); return; }
+    const b = e.target.closest('[data-act]'); if(!b) return;
+    const id = b.dataset.id, r = id && find(id);
+    switch(b.dataset.act){
+      case 'approve': write(id,{status:'approved', replyText:(r.replyText||r.suggestedReply||'').trim(), decidedAt:now(), error:null}); break;
+      case 'edit': editing.add(id); drafts[id] = r.replyText || r.suggestedReply || ''; render(); const ta=document.getElementById('ta-'+id); if(ta){ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length)} break;
+      case 'cancel': editing.delete(id); delete drafts[id]; render(); break;
+      case 'save': {
+        const v = (drafts[id] ?? '').trim(); if(!v){ statusEl.textContent='A reply cannot be empty. Use Skip instead.'; return; }
+        editing.delete(id); delete drafts[id];
+        write(id,{status:'approved', replyText:v, edited: v !== (r.suggestedReply||'').trim(), decidedAt:now(), error:null}); break;
+      }
+      case 'vn-sent': write(id,{voiceNote:'sent', voiceNoteDate:new Date().toISOString().slice(0,10), voiceNoteSource:'dashboard'}); break;
+      case 'book-off': write(id,{bookMeeting:false}); break;
+      case 'book-on': write(id,{bookMeeting:true}); break;
+      case 'vn-unsent': write(id,{voiceNote:'not_sent', voiceNoteDate:null, voiceNoteSource:null}); break;
+      case 'skip': write(id,{status:'skipped', decidedAt:now()}); break;
+      case 'undo': write(id,{status:'pending', decidedAt:null}); break;
+      case 'approve-all':
+        rows.filter(x => (x.status||'pending')==='pending' && (x.replyText||x.suggestedReply||'').trim() && !x.aiNote && !editing.has(x.id))
+          .forEach(x => write(x.id,{status:'approved', replyText:(x.replyText||x.suggestedReply).trim(), decidedAt:now()}));
+        break;
+    }
+  });
+  document.addEventListener('input', e => {
+    if(e.target.matches('textarea[data-id]')){
+      const id = e.target.dataset.id; drafts[id] = e.target.value;
+      const c = document.getElementById('ch-'+id); if(c) c.textContent = e.target.value.length + ' / 8000';
+    }
+  });
+
+  (async function init(){
+    try{ db = await claude.use('db'); }catch(e){ db = null; }
+    if(!db){ listEl.innerHTML = '<div class="empty"><strong>Sign in to see your messages</strong>This view cannot reach the message store.</div>'; return; }
+    db.collection('messages').onSnapshot(snap => {
+      rows = snap.docs.map(d => Object.assign({id:d.id}, d.data()||{}));
+      render();
+    }, err => { statusEl.textContent = 'Lost connection to the message store. Reopen the page to retry.'; });
+    db.doc('meta/status').onSnapshot(s => {
+      const m = (s && s.exists && s.data()) || {};
+      if(m.lastCheckedAt) document.getElementById('lastCheck').textContent = 'Last checked ' + ago(m.lastCheckedAt);
+      if(m.lastSentAt) document.getElementById('lastSend').textContent = 'Last replies sent ' + ago(m.lastSentAt);
+    }, () => {});
+  })();
+})();
+</script>
